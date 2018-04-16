@@ -17,32 +17,29 @@ class Blog(db.Model):
         self.title = title
         self.body = body
 
-    def __repr__(self):
-        return '<title %r>' % self.title
+    #def __repr__(self):
+        #return '<title %r>' % self.title
 
-
-@app.route('/', methods=['POST', 'GET'])
-def index():
-
-    return redirect('/blog')
     
-@app.route('/blog', methods=['POST', 'GET'])
+@app.route('/blog', methods=['GET','POST'])
 def blog_list():    
     
     blogs = Blog.query.all()
     return render_template('blog.html', blogs=blogs)
-
-
-@app.route('/newblog', methods=['POST'])
-def new_blog():
     
-    blog_title=request.form['blog_title']
-    blog_area=request.form['blog_area']
-    new_blog=Blog(blog_title, blog_area)
-    db.session.add(new_blog)
-    db.session.commit()
-    blog_title_error=""
-    blog_area_error=""
+
+@app.route('/newblog', methods=['GET', 'POST'])
+def newblog():
+    
+    if request.method == 'POST':   
+        blog_title = request.form['blog_title']
+        blog_area = request.form['blog_area']
+        newblog = Blog(blog_title, blog_area)
+        db.session.add(newblog)
+        db.session.commit()
+        blog_title_error=""
+        blog_area_error=""   
+    return render_template('newblog.html')
     
     if blog_title == "": 
         blog_title_error="Please fill in both fields"
@@ -51,13 +48,15 @@ def new_blog():
         blog_area_error="Please fill in both fields"
         blog_area=blog_area
 
-    if not blog_error:
+    if not blog_area_error and not blog_title_error:
         return redirect('/blog')
     else:
-        return render_template('newblog.html', blog_title=blog_title, blog_area=blog_area,
-        blog_error=blog_error)
+        return render_template('newblog.html', blog_area_error=blog_area_error,
+            blog_title_error=blog_title_error)
 
-
+@app.route('/', methods=['GET'])
+def index():
+    return redirect('/blog')
 
 if __name__ == '__main__':
     app.run()
