@@ -1,0 +1,25 @@
+<!doctype html>
+<html>
+    <nav>
+        <a href='/'> Main Blog Page </a> |
+        <a href='/newblog'> Create a New Blog Entry </a>
+    </nav>
+    
+    <head>
+        <style>
+            h1{
+                font-size: 2.5em;
+                text-align: center;
+            }
+            .error{
+                color: red;
+            }
+        </style>
+    </head>
+<body>
+
+    {% block content %}
+    {% endblock %}
+
+</body>
+</html>
