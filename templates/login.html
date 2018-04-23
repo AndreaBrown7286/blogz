@@ -1,0 +1,33 @@
+{% extends "base.html" %}
+
+{% block content %}
+<h1>Log in to Blogz!</h1>
+
+
+<form action="/login" method="post">
+    <table>
+        <tbody>
+            <tr>
+                <td><p class="error">{{login_error}}</p></td>
+                
+            </tr>
+                <td><label for="username">Username</label></td>
+                <td>     
+                    <input type="text" name="username" value="{{username}}"/>
+                    <span class="error">{{username_error}}</span>
+                </td>
+            </tr>    
+            <tr>
+                <td><label for="password">Password</label></td>
+                <td>          
+                    <input type="password" name="password" value="{{password}}"/>
+                    <span class="error">{{password_error}}</span>
+                </td>
+            </tr>
+        </tbody>
+    </table>
+    <input type="submit" value="Login">
+</form>
+
+<p style="font-size: .8cm">If you don't have an account,<a href="/signup">signup</a> for Blogz!</p>
+{% endblock %}

@@ -1,4 +1,4 @@
-from flask import Flask, request, redirect, render_template
+from flask import Flask, request, redirect, render_template, session
 from flask_sqlalchemy import SQLAlchemy
 
 app = Flask(__name__)
@@ -6,6 +6,7 @@ app.config['DEBUG'] = True
 app.config['SQLALCHEMY_DATABASE_URI'] = 'mysql+pymysql://blogz:mypassword@localhost:8889/blogz'
 app.config['SQLALCHEMY_ECHO'] = True
 db = SQLAlchemy(app)
+app.secret_key = 'y337kGcys&zP3B123'
 
 class Blog(db.Model):
 
@@ -22,7 +23,7 @@ class Blog(db.Model):
 class User(db.Model):
     
     id = db.Column(db.Integer, primary_key=True)
-    username = db.Column(db.String(50))
+    username = db.Column(db.String(50), unique=True)
     password = db.Column(db.String(50))
     blogs = db.relationship('Blog', backref='author')
 
@@ -30,7 +31,63 @@ class User(db.Model):
         self.username = username
         self.password = password
 
+
+
+
+@app.route("/login", methods=['GET','POST'])
+def login():
     
+    login_error = ""
+
+    if request.method == 'POST':
+        username = request.form['username']
+        password = request.form['password']
+        user = User.query.filter_by(username=username).first()
+        if user and user.password == password:
+            session['username'] = username
+            return redirect('/newblog')
+        else:
+            login_error = "User password incorrect, or user does not exist."
+            
+    return render_template('login.html')
+
+@app.route('/signup', methods=['GET', 'POST'])
+def signup():
+
+    signup_error = ""
+    username_error = ""
+    password_error = ""
+    verify_password_error = ""
+
+    if request.method == 'POST':
+        username = request.form['username']
+        password = request.form['password']
+        verify_password = request.form['verify_password']
+        
+        if not username or len(username) <3 or len(username) >20 or str.isalpha(username)==False:
+            username_error="The username must be between 3-20 characters with no spaces."
+            username=username
+
+        if not password or len(password) <3 or len(password) >20 or str.isalpha(password)==False:
+            password_error="The password must be between 3-20 characters with no spaces."
+            password=''
+
+        if password != verify_password:
+            verify_password_error="Your passwords do not match."
+            verify_password=''
+
+        existing_user = User.query.filter_by(username=username).first()
+        if not existing_user:
+            new_user = User(username, password)
+            db.session.add(new_user)
+            db.session.commit()
+            session['username'] = username
+            return redirect('/')
+        else:
+            signup_error = "This user already exists."
+    return render_template('signup.html')    
+    
+
 @app.route('/blog', methods=['GET','POST'])
 def blog_list():    
     
@@ -78,13 +135,11 @@ def newblog():
 
     return render_template('newblog.html')    
 
-    
 
-    
 
 @app.route('/', methods=['GET'])
 def index():
-    return redirect('/blog')
+    return redirect('/')
 
 if __name__ == '__main__':
     app.run()
