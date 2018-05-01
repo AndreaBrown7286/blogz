@@ -3,12 +3,14 @@
 {% block content %}
     <h1>Build A Blog</h1>
     
+    <hr>
     
         {% for blog in blogs %}
         <nav>
             <li><h2><a href='/blog?id={{blog.id}}'> {{blog.title}}</a></h2></li> 
             <br>            
             <li>{{blog.body}}</li>
+            <li><p>Posted by:<a href="/blog?userid={{blog.owner.id}}">{{blog.owner}}</a></p></li>
         </nav>
         <br>
         {% endfor %}

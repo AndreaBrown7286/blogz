@@ -4,10 +4,9 @@
 <h1>Welcome to Blogz!</h1>
 
 
-<ul>
-    {% for users in users %}
-    <li>{{user.username}}</li>
+<hr>
+    {% for user in users %}
+    <p><a href='/blog?userid={{user.id}}'>{{user.username}}</a></p>
     {% endfor %}
-</ul>
 
 {% endblock %}

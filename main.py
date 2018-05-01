@@ -8,6 +8,7 @@ app.config['SQLALCHEMY_ECHO'] = True
 db = SQLAlchemy(app)
 app.secret_key = 'y337kGcys&zP3B123'
 
+
 class User(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     username = db.Column(db.String(50), unique=True)
@@ -17,6 +18,9 @@ class User(db.Model):
     def __init__(self, username, password):
         self.username = username
         self.password = password
+
+    def __repr__(self):
+        return self.username
 
 class Blog(db.Model):
     id = db.Column(db.Integer, primary_key=True)
@@ -29,8 +33,6 @@ class Blog(db.Model):
         self.body = body
         self.owner = owner
 
-    def __repr__(self):
-        return '<Blog %r>' % self.name
 
 @app.before_request
 def require_login():
@@ -92,18 +94,20 @@ def signup():
 @app.route('/blog', methods=['GET','POST'])
 def blog_list():    
     
-    if not request.args.get('id'):
-        blogs = Blog.query.all()
-        return render_template('blog.html', blogs=blogs)
+    users = User.query.all()
+    blogs = Blog.query.all()    
+    blog_id = request.args.get('id')
+    user_id = request.args.get('userid')
 
-    if request.args.get('id'):
-        blog_id = request.args.get('id')
-        single_blog = Blog.query.get(blog_id)
-
-        blog_title=single_blog.title
-        blog_body=single_blog.body
-
-    return render_template('blog-display.html', blog_title=single_blog.title,blog_body=single_blog.body )
+    if blog_id:
+        blog = Blog.query.get(blog_id)
+        return render_template('single-blog.html', blog=blog)
+  
+    if user_id:
+        entries=Blog.query.filter_by(owner_id=user_id).all()
+        return render_template('user-blog.html', entries=entries)
+    
+    return render_template('blog.html', blogs=blogs, users=users)
 
 
 @app.route('/newblog', methods=['GET', 'POST'])
@@ -128,11 +132,12 @@ def newblog():
             return render_template('newblog.html', blog_body_error=blog_body_error,
                 blog_title_error=blog_title_error)
         
-        newblog = Blog(blog_title, blog_body, logged_in_user())
-        db.session.add(newblog)
-        db.session.commit()
-        newblog_id = str(newblog.id)
-        return redirect('/blog?id='+ newblog_id)
+        if not blog_title_error or blog_body_error:
+            newblog = Blog(blog_title, blog_body, logged_in_user())
+            db.session.add(newblog)
+            db.session.commit()
+            newblog_id = str(newblog.id)
+            return redirect('/blog?id='+ newblog_id)
 
     return render_template('newblog.html')    
 
@@ -140,17 +145,24 @@ def newblog():
 @app.route('/logout')
 def logout():
     del session['user']
-    return redirect('/blog')
+    return redirect('/')
     #needs to redirect to /blog, but instead redirects to /login
 
 
 @app.route('/', methods=["GET"])
 def index():
-    return render_template("index.html")
+    users = User.query.all()
+    return render_template("index.html", users=users)
+    
 
 def logged_in_user():
     owner = User.query.filter_by(username=session['user']).first()
     return owner
+
+def authors():
+    authors = User.query.filter_by(username=username).all()
+    return authors
+
 
 
 if __name__ == '__main__':
